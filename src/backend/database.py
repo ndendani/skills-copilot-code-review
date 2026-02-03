@@ -10,6 +10,7 @@ client = MongoClient('mongodb://localhost:27017/')
 db = client['mergington_high']
 activities_collection = db['activities']
 teachers_collection = db['teachers']
+announcements_collection = db['announcements']
 
 # Methods
 
@@ -49,6 +50,11 @@ def init_database():
         for teacher in initial_teachers:
             teachers_collection.insert_one(
                 {"_id": teacher["username"], **teacher})
+
+    # Initialize announcements if empty
+    if announcements_collection.count_documents({}) == 0:
+        for announcement in initial_announcements:
+            announcements_collection.insert_one(announcement)
 
 
 # Initial database if empty
@@ -205,5 +211,22 @@ initial_teachers = [
         "display_name": "Principal Martinez",
         "password": hash_password("admin789"),
         "role": "admin"
+    },
+    {
+        "username": "admin",
+        "display_name": "Administrator",
+        "password": hash_password("admin"),
+        "role": "admin"
+    }
+]
+
+initial_announcements = [
+    {
+        "title": "Welcome to the New School Year!",
+        "message": "We're excited to have you back! Check out our new extracurricular activities and sign up for your favorites. Don't forget to attend the welcome assembly this Friday at 2 PM.",
+        "start_date": "2026-02-01T00:00:00",
+        "expiration_date": "2026-03-01T23:59:59",
+        "created_by": "principal",
+        "created_at": "2026-02-01T08:00:00"
     }
 ]

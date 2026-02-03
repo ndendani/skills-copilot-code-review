@@ -1,0 +1,111 @@
+# Installation de MongoDB sur Debian/Ubuntu
+
+## Option 1: Installation manuelle (téléchargement direct - recommandée pour ce projet)
+
+# 1. Télécharger MongoDB
+cd /tmp
+wget -q https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-debian11-7.0.5.tgz
+
+# 2. Extraire l'archive
+tar xzf mongodb-linux-x86_64-debian11-7.0.5.tgz
+rm mongodb-linux-x86_64-debian11-7.0.5.tgz
+
+# 3. Installer la bibliothèque libssl1.1 (si nécessaire)
+wget -q http://ftp.us.debian.org/debian/pool/main/o/openssl/libssl1.1_1.1.1w-0+deb11u1_amd64.deb -O /tmp/libssl.deb
+sudo dpkg -i /tmp/libssl.deb
+rm /tmp/libssl.deb
+
+# 4. Créer le répertoire de données
+mkdir -p /tmp/mongodb_data
+
+# 5. Démarrer MongoDB
+/tmp/mongodb-linux-x86_64-debian11-7.0.5/bin/mongod --dbpath /tmp/mongodb_data --port 27017 --bind_ip 127.0.0.1 --fork --logpath /tmp/mongodb.log
+
+# 6. Vérifier que MongoDB fonctionne
+tail -20 /tmp/mongodb.log
+
+# 7. Pour arrêter MongoDB
+/tmp/mongodb-linux-x86_64-debian11-7.0.5/bin/mongod --dbpath /tmp/mongodb_data --shutdown
+
+
+## Option 2: Installation via APT (méthode officielle - peut avoir des problèmes avec les signatures GPG récentes)
+
+# 1. Importer la clé GPG publique de MongoDB
+curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | sudo gpg --dearmor -o /usr/share/keyrings/mongodb-server-7.0.gpg
+
+# 2. Créer le fichier de liste pour MongoDB
+echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] http://repo.mongodb.org/apt/debian bookworm/mongodb-org/7.0 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+
+# 3. Mettre à jour la base de données des paquets
+sudo apt-get update
+
+# 4. Installer MongoDB
+sudo apt-get install -y mongodb-org
+
+# 5. Démarrer MongoDB
+sudo systemctl start mongod
+
+# 6. Activer MongoDB au démarrage
+sudo systemctl enable mongod
+
+# 7. Vérifier le statut
+sudo systemctl status mongod
+
+
+## Option 3: Utilisation avec Docker (si Docker est disponible)
+
+# 1. Démarrer un conteneur MongoDB
+docker run -d --name mongodb -p 27017:27017 -v mongodb_data:/data/db mongo:7.0
+
+# 2. Vérifier que le conteneur fonctionne
+docker ps
+
+# 3. Voir les logs
+docker logs mongodb
+
+# 4. Arrêter le conteneur
+docker stop mongodb
+
+# 5. Redémarrer le conteneur
+docker start mongodb
+
+# 6. Supprimer le conteneur
+docker rm -f mongodb
+
+
+## Commandes utiles MongoDB
+
+# Se connecter au shell MongoDB (installation manuelle)
+/tmp/mongodb-linux-x86_64-debian11-7.0.5/bin/mongosh
+
+# Se connecter au shell MongoDB (installation APT)
+mongosh
+
+# Vérifier si MongoDB est en cours d'exécution
+pgrep -x mongod
+
+# Afficher les bases de données
+# (depuis le shell mongosh)
+show dbs
+
+# Utiliser la base de données de l'application
+use mergington_high
+
+# Afficher les collections
+show collections
+
+# Voir les annonces
+db.announcements.find().pretty()
+
+# Voir les activités
+db.activities.find().pretty()
+
+# Voir les enseignants
+db.teachers.find().pretty()
+
+
+## Pour ce projet spécifiquement
+
+# Après avoir démarré MongoDB, démarrer l'application FastAPI:
+cd /workspaces/skills-copilot-code-review
+/workspaces/skills-copilot-code-review/.venv/bin/uvicorn src.app:app --host 0.0.0.0 --port 8000 --reload
